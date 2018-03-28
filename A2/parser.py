@@ -1,7 +1,7 @@
 """
 Name: Raymond Wang
-ID:	  V00802086
-Date: FEB 28, 2018
+ID:   V00802086
+Date: MAR 28, 2018
 """
 
 import pcapy
@@ -151,7 +151,7 @@ def check_connection(iph, tcph, ts, data, data_size):
             index = i
             break
 
-    if found:
+    if found and len(connections[index].rtt_array) > 0:
         first = connections[index].rtt_array[-1].first
         if first == 1:
             connections[index].rtt_array[-1].start_time = ts
@@ -257,12 +257,12 @@ def parse_packet(current_packet, ts, capture_len):
     eth = unpack('!6s6sH', eth_header)
     eth_protocol = socket.ntohs(eth[2])
 
-    # Only parse IP packets, ignore others
+    # only parse IP packets, ignore others
     if eth_protocol == 8:
         if 20 + eth_length > capture_len:
             return
 
-        # Take first 20 characters for the ip header
+        # take first 20 characters for the ip header
         ip_header = current_packet[eth_length:20 + eth_length]
         iph = unpack('!BBHHHBBH4s4s', ip_header)
 
@@ -271,13 +271,13 @@ def parse_packet(current_packet, ts, capture_len):
         iph_length = ihl * 4
         protocol = iph[6]
 
-        # Only deal with TCP protocol
+        # only deal with TCP protocol
         if protocol == 6:
             tcp_header_length = iph_length + eth_length
             if tcp_header_length + 20 > capture_len:
                 return
 
-            # Take first 20 characters for the TCP header
+            # take first 20 characters for the tcp header
             tcp_header = current_packet[tcp_header_length:tcp_header_length + 20]
             tcph = unpack('!HHLLBBHHH', tcp_header)
 
@@ -286,7 +286,7 @@ def parse_packet(current_packet, ts, capture_len):
             h_size = eth_length + iph_length + tcph_length * 4
             data_size = len(current_packet) - h_size
 
-            # Get data from the packet
+            # get data from the packet
             data = current_packet[h_size:]
             check_connection(iph, tcph, ts, data, data_size)
 
